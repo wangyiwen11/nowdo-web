@@ -58,23 +58,11 @@ function parseRemindInMs(text: string): { remindInMs?: number; rest: string } {
   let remindInMs: number | undefined;
 
   const patterns: Array<[RegExp, number | ((m: RegExpMatchArray) => number)]> = [
-    [/半小时后|30\s*分钟后/, 30 * 60 * 1000],
-    [/一刻钟后|15\s*分钟后/, 15 * 60 * 1000],
-    [/一小时后|1\s*小时后/, 60 * 60 * 1000],
-    [/今晚/, () => hoursUntil(20)],
-    [/明天/, () => nextDayAt(10)],
+    [/半小时后/, 30 * 60 * 1000],
+    [/一刻钟后/, 15 * 60 * 1000],
+    [/一小时后/, 60 * 60 * 1000],
     [/(\d+)\s*分钟后/, (m) => Number(m[1]) * 60 * 1000],
     [/(\d+)\s*小时后/, (m) => Number(m[1]) * 60 * 60 * 1000],
-    [/(\d{1,2})[:：](\d{2})/, (m) => msUntilClock(Number(m[1]), Number(m[2]))],
-    [
-      /(凌晨|早上|上午|中午|下午|晚上|傍晚)?\s*([一二两三四五六七八九十\d]{1,3})\s*点\s*(半|[一二三四五六七八九十\d]{1,2})?/,
-      (m) => {
-        const hour = chineseHour(m[2]);
-        if (hour == null) return -1;
-        const minute = m[3] === "半" ? 30 : m[3] ? chineseHour(m[3]) ?? 0 : 0;
-        return msUntilClock(applyPeriod(hour, m[1]), minute);
-      },
-    ],
   ];
 
   for (const [re, value] of patterns) {
@@ -118,30 +106,8 @@ function applyPeriod(hour: number, period?: string) {
   return hour;
 }
 
-function msUntilClock(hour: number, minute: number) {
-  const next = new Date();
-  next.setHours(hour, minute, 0, 0);
-  if (next.getTime() <= Date.now()) next.setDate(next.getDate() + 1);
-  return next.getTime() - Date.now();
-}
-
-export function parseReminder(text: string) {
-  return parseRemindInMs(text).remindInMs;
-}
-
-function hoursUntil(hour: number) {
-  const now = new Date();
-  const next = new Date(now);
-  next.setHours(hour, 0, 0, 0);
-  if (next.getTime() <= now.getTime()) next.setDate(next.getDate() + 1);
-  return next.getTime() - now.getTime();
-}
-
-function nextDayAt(hour: number) {
-  const next = new Date();
-  next.setDate(next.getDate() + 1);
-  next.setHours(hour, 0, 0, 0);
-  return next.getTime() - Date.now();
+export function parseReminder(text: string, nowTs = Date.now()) {
+  return parsePlan(text, nowTs).remindInMs;
 }
 
 function jumpFromUrl(text: string): { jump?: JumpTarget; rest: string } {
@@ -257,6 +223,17 @@ export function findAfterTask<T extends { title: string }>(tasks: T[], query: st
   });
 }
 
+export function captureDay(plans: ParsedPlan[], tasks: { title: string; scheduledFor?: number; createdAt: number }[], nowTs = Date.now()) {
+  const known = tasks.map((task) => ({ title: task.title, day: taskDay(task) }));
+  let day = startOfDay(nowTs);
+  for (const plan of plans) {
+    const host = plan.afterQuery ? findAfterTask(known, plan.afterQuery) : undefined;
+    day = host?.day ?? plan.scheduledFor;
+    if (!host) known.push({ title: plan.title.replace(/现在做|马上做|开始做/g, "").trim() || plan.title, day });
+  }
+  return day;
+}
+
 function clockOnDay(dayStart: number, hour: number, minute: number) {
   const next = new Date(dayStart);
   next.setHours(hour, minute, 0, 0);
@@ -325,12 +302,11 @@ function takeClock(text: string): { hour?: number; minute?: number; matched?: st
   return { rest: text };
 }
 
-function defaultHour(period?: string, dayMentioned = false, hasAfter = false) {
+function defaultHour(period?: string) {
   if (period === "晚上") return 20;
   if (period === "中午") return 12;
   if (period === "下午") return 15;
   if (period === "早上") return 10;
-  if (dayMentioned && !hasAfter) return 10;
   return undefined;
 }
 
@@ -373,8 +349,14 @@ export function parsePlans(input: string, nowTs = Date.now(), options?: { split?
     const plan = parsePlan(input, nowTs, { split: false });
     return plan.title ? [{ ...plan, source: input.trim() }] : [];
   }
-  const chunks = input
-    .split(/[。！？\n]+/)
+  const urls: string[] = [];
+  const protectedInput = input.replace(/https?:\/\/[^\s，。！？；\n]+/gi, (url) => {
+    urls.push(url);
+    return `\uE000NOWDO_URL_${urls.length - 1}\uE001`;
+  });
+  const chunks = protectedInput
+    .split(/[。！？；;\n]+|[，,](?=\s*(?:(?:再|然后|还有|提醒我|记得)\s*)?(?:今天|明天|后天|今晚))/)
+    .map((chunk) => chunk.replace(/\uE000NOWDO_URL_(\d+)\uE001/g, (_, index: string) => urls[Number(index)]))
     .map((chunk) => chunk.trim())
     .filter((chunk) => chunk && !/^(比如|理解|你理解|对吧|嗯|啊)/.test(chunk));
   const source = chunks.length > 0 ? chunks : [input.trim()];
@@ -401,20 +383,22 @@ export function parsePlan(input: string, nowTs = Date.now(), options?: { split?:
   rest = jumped.rest;
 
   const split = options?.split !== false;
-  const parts = split ? splitParts(rest) : [cleanTitle(rest) || cleanTitle(raw)].filter(Boolean);
-  const title = parts[0] || cleanTitle(rest) || cleanTitle(raw) || "未命名待办";
+  const parts = split ? splitParts(rest) : [cleanTitle(rest)].filter(Boolean);
+  const title = parts[0] || cleanTitle(rest) || jumped.jump?.label || "";
   const extras = split ? parts.slice(1) : [];
 
   let hour = clock.hour;
   let minute = clock.minute ?? 0;
   if (hour == null) {
-    hour = defaultHour(day.period, day.mentioned, Boolean(after.afterQuery));
+    hour = relative.remindInMs ? undefined : defaultHour(day.period);
     minute = 0;
   }
 
   let remindAt: number | undefined;
   if (hour != null) {
     remindAt = clockOnDay(day.scheduledFor, hour, minute);
+    // A clock without a date means the next occurrence. Explicit today stays today.
+    if (!day.mentioned && remindAt <= nowTs) remindAt = clockOnDay(addDays(day.scheduledFor, 1), hour, minute);
   } else if (relative.remindInMs) {
     remindAt = nowTs + relative.remindInMs;
   }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { loadState, openJump, saveState, subscribeEvents } from "./api";
 import {
   addDays,
+  captureDay,
   findAfterTask,
   latestNote,
   makeId,
@@ -96,18 +97,23 @@ function now() {
 function requestBrowserNotify() {
   if (typeof Notification === "undefined") return;
   if (Notification.permission === "default") {
-    void Notification.requestPermission();
+    void Notification.requestPermission().catch(() => undefined);
   }
 }
 
 function browserNotify(title: string, body: string, taskId: string, onClick: () => void) {
   if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
-  const note = new Notification(title, { body, tag: `nowdo-${taskId}` });
-  note.onclick = () => {
-    window.focus();
-    onClick();
-    note.close();
-  };
+  try {
+    const note = new Notification(title, { body, tag: `nowdo-${taskId}` });
+    note.onclick = () => {
+      window.focus();
+      onClick();
+      note.close();
+    };
+  } catch {
+    // Some mobile browsers expose Notification but do not allow its constructor.
+    // The in-page reminder remains available.
+  }
 }
 
 export function useNowdo() {
@@ -194,7 +200,7 @@ export function useNowdo() {
       const createdAt = now();
       const plans = parsePlans(text, createdAt, { split: stateRef.current.settings.autoSplit !== false });
       if (plans.length === 0) return null;
-      let focusDay = startOfDay(createdAt);
+      const focusDay = captureDay(plans, stateRef.current.tasks, createdAt);
       let last: Task | null = null;
 
       patchTasks((tasks) => {
@@ -222,7 +228,6 @@ export function useNowdo() {
                   : item,
               );
               last = { ...host, scheduledFor: taskDay(host) };
-              focusDay = taskDay(host);
               continue;
             }
           }
@@ -256,7 +261,6 @@ export function useNowdo() {
           };
           next = [...next, created];
           last = created;
-          focusDay = plan.scheduledFor;
         }
         return next;
       });
@@ -268,7 +272,7 @@ export function useNowdo() {
 
   const finishSegment = useCallback((taskId: string, note: string, asDone: boolean) => {
     const text = note.trim();
-    if (asDone && !text) return false;
+    if (!text) return false;
     const at = now();
     patchTasks((tasks) =>
       tasks.map((item) => {

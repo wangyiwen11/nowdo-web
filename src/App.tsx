@@ -74,7 +74,7 @@ export default function App() {
     const value = text.trim();
     if (!value) return;
     if (typeof Notification !== "undefined" && Notification.permission === "default") {
-      void Notification.requestPermission();
+      void Notification.requestPermission().catch(() => undefined);
     }
     n.capture(value);
     setDraft("");
@@ -305,7 +305,8 @@ export default function App() {
       ) : null}
 
       <p className="share-note">
-        网页版 nowdo。加到主屏幕就能当小程序用。记录只存在这台设备的浏览器里，别人打开是空的自己的。
+        网页版 nowdo，可添加到主屏幕。任务记录保存在当前设备的浏览器里，不会自动同步或备份；清理浏览器数据会删除记录。
+        语音识别由浏览器提供，可能使用在线服务。请保持页面开启；关闭页面、后台运行或锁屏时，不保证准时提醒。
         <button type="button" className="guide-inline" onClick={openGuideHash}>
           看使用教程
         </button>
@@ -539,7 +540,10 @@ function CommandSheet({
     const remind = parseReminder(value);
     const parsed = parseCapture(value);
     const sub = parsed.title && parsed.title !== task.title ? parsed.title : !remind ? value.trim() : "";
-    if (remind) onRemind(remind);
+    if (remind != null) {
+      onRemind(remind);
+      return true;
+    }
     if (sub) {
       onStart(sub);
       return true;
