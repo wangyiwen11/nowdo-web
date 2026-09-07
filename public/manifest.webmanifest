@@ -2,14 +2,16 @@
   "name": "nowdo",
   "short_name": "nowdo",
   "description": "一万年太久，只争朝夕",
-  "start_url": "/",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#f4f0fb",
   "theme_color": "#6d4aff",
   "lang": "zh-CN",
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "./icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
