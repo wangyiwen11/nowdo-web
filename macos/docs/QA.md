@@ -38,4 +38,23 @@ v2.0 加入 NSFilePromiseReceiver 接收流程，松手后等待 Calendar 交付
 
 ## 发布范围
 
-公开源码、示例、教程和明确标记的预览构建。未验证的右键、拖拽或跨机器安装没有写成正式完成。GitHub 自动构建与 Release 分别以工作流实际结果确认，配置文件本身不是成功证据。
+公开源码、示例、教程和明确标记的预览构建。未验证的右键、拖拽或跨机器图形界面安装没有写成正式完成。
+
+### GitHub v2.0.0 发布记录
+
+- [v2.0.0 公开预览发行页](https://github.com/wangyiwen11/nowdo-web/releases/tag/v2.0.0)已发布；源码与发行页公开可访问。
+- 发布对应提交：`c6094366a734468e34f275b9aecbfefc78a31ed4`。
+- GitHub `macos-15` / ARM64 的 13 项计时核心、15 项日程解析、20 项文件交付边界检查通过，应用构建和临时签名校验成功。
+- 构建任务与发布任务均完成成功；不是仅完成工作流配置。[工作流入口](https://github.com/wangyiwen11/nowdo-web/actions/workflows/nowdo-macos.yml)。
+- 发行资产：`NowDo-v2.0.0-macOS-arm64.zip` 与 `SHA256SUMS.txt`。
+
+### 公开发行资产独立检查
+
+- 匿名下载 ZIP 与校验文件均返回 HTTP 200。
+- ZIP 的 SHA256 与发布校验文件一致：`8a8dc90add71d9f9004dfcdb0c7a87caa2d6e9f56662e343680415ed52ef52c7`。
+- 解压后核对版本 `2.0.0`、可执行文件 `arm64` 架构及资源中的 MIT 许可文件。
+- 对下载包内的应用执行严格签名校验通过；这是临时签名，不是 Apple Developer ID 签名或公证。
+- 本机已安装应用也确认版本 `2.0.0`、包含许可文件，`--show-dot` 进程运行。
+- 原有网页版的 GitHub Pages 构建和部署成功，Mac 版与网页记录仍独立。
+
+下载、校验和本机进程运行均不替代跨机器图形界面安装验收。真实 Calendar 拖入、右键菜单以及 Developer ID 签名和公证仍保留待验证。

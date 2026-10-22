@@ -13,9 +13,9 @@
 
 免费开源，MIT 许可。没有账号、订阅或 AI API 要求。**当前是开源预览版：核心与输入边界已测试，修复后的真实 Calendar 拖入、原生右键菜单和跨机器安装仍待完整验收。**
 
-[Mac v2.0 使用说明](macos/README.md) · [第一次使用](macos/docs/GETTING-STARTED.md) · [拖入没反应怎么办](macos/docs/FAQ.md) · [开源许可](LICENSE)
+[下载 Mac v2.0.0 预览版](https://github.com/wangyiwen11/nowdo-web/releases/download/v2.0.0/NowDo-v2.0.0-macOS-arm64.zip) · [发行页与校验文件](https://github.com/wangyiwen11/nowdo-web/releases/tag/v2.0.0) · [使用说明](macos/README.md) · [第一次使用](macos/docs/GETTING-STARTED.md) · [拖入没反应怎么办](macos/docs/FAQ.md) · [开源许可](LICENSE)
 
-Mac 源码在 `macos/`。自动构建成功后，预览安装包会出现在 [Releases](https://github.com/wangyiwen11/nowdo-web/releases)。它尚未经过 Apple Developer ID 签名和公证；源码构建方法和验证边界见使用说明。不要把下载源码当作已经安装应用。
+Mac 源码在 `macos/`。Apple Silicon 预览安装包已公开；GitHub macOS 15 / ARM64 上的 48 项核心与输入边界检查、应用构建及临时签名校验通过，预览发布任务成功。公开下载包的 SHA256、版本、架构、许可和临时签名也已独立检查。下载 ZIP 后解压，把 `.app` 放到 Applications 再打开。包没有 Apple Developer ID 签名或公证，跨机器图形界面安装仍待验证；具体步骤与验证边界见使用说明。
 
 ![NowDo v2.0 示例界面](macos/docs/previews/tasks.png)
 

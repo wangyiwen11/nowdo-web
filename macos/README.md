@@ -4,9 +4,9 @@
 
 NowDo 是一个 Mac 悬浮秒表。开始一件事，点小点暂停或继续，结束后看实际用时，给下次安排留一个参考。
 
-**v2.0 · 开源预览版。** 免费，采用 [MIT 许可](LICENSE)，无需账号、订阅或 AI API。当前提供源码与本机测试构建；公开安装包尚未完成发行与公证验证。苹果日历拖入修复仍需真实操作回归，见[验证状态](#验证状态)。
+**v2.0 · 开源预览版。** 免费，采用 [MIT 许可](LICENSE)，无需账号、订阅或 AI API。源码与 Apple Silicon 预览安装包已公开。GitHub 自动测试、构建和发布已成功；公开下载包的 SHA256 与临时签名已独立检查。安装包没有 Apple Developer ID 签名或公证，跨机器图形界面安装仍待验证。苹果日历拖入修复仍需真实操作回归，见[验证状态](#验证状态)。
 
-[开始使用](docs/GETTING-STARTED.md) · [遇到问题](docs/FAQ.md) · [产品评审](docs/PRODUCT-REVIEW.md)
+[下载 Mac 预览版](https://github.com/wangyiwen11/nowdo-web/releases/download/v2.0.0/NowDo-v2.0.0-macOS-arm64.zip) · [发行页与校验文件](https://github.com/wangyiwen11/nowdo-web/releases/tag/v2.0.0) · [开始使用](docs/GETTING-STARTED.md) · [遇到问题](docs/FAQ.md) · [产品评审](docs/PRODUCT-REVIEW.md)
 
 ![示例界面：暂停、继续和用时复盘](docs/previews/tasks.png)
 
@@ -56,10 +56,11 @@ NowDo 是一个 Mac 悬浮秒表。开始一件事，点小点暂停或继续，
 | 苹果日历拖拽 | 真实用户报告旧版无反应；已确认该环境使用异步文件交付，接收代码已补充；修复后的完整拖拽仍待验证 |
 | 苹果日历右键菜单 | 已注册“用 NowDo 开始计时”服务；是否出现在 Calendar 的右键菜单未确认 |
 | 使用演示 | 提供独立示例演示；它演示计时操作，不模拟或证明 Calendar 拖入成功 |
-| 系统与硬件 | 最低目标 macOS 14；本机测试环境为 Apple Silicon / macOS 26.6.2。Intel 与旧系统未实测 |
-| 下载与安装 | 本地构建脚本可生成 `.app`；没有已验证的公开公证安装包 |
+| 系统与硬件 | 最低目标 macOS 14；本机为 Apple Silicon / macOS 26.6.2，GitHub macOS 15 / ARM64 构建通过。Intel 与旧系统图形界面未实测 |
+| GitHub 自动检查 | v2.0.0 的 13 项核心、15 项解析、20 项文件交付检查及应用构建、临时签名校验通过 |
+| 下载与安装 | [v2.0.0 预览版](https://github.com/wangyiwen11/nowdo-web/releases/tag/v2.0.0)已发布；匿名下载、SHA256、版本、ARM64 架构、许可和临时签名检查通过。尚无 Developer ID 签名、公证或跨机器图形界面安装验收 |
 
-因此，本轮开放的是**可检查、可修改的源码和预览流程**。还不能把它称为“苹果日历拖入已全面可用”的正式发行版。
+因此，本轮开放的是**可检查、可修改的源码和预览安装包**。还不能把它称为“苹果日历拖入已全面可用”的正式发行版。
 
 ## 记录放在哪里
 
@@ -71,9 +72,17 @@ NowDo 是一个 Mac 悬浮秒表。开始一件事，点小点暂停或继续，
 
 休眠或正常退出时暂停。异常中断会恢复到最后保存点，正常心跳间隔约 15 秒；磁盘写入失败会显示错误，不能保证异常情况下零丢失。备份、恢复与权限说明见 [FAQ](docs/FAQ.md)。
 
+## 下载与打开
+
+1. 下载 [Apple Silicon 预览安装包](https://github.com/wangyiwen11/nowdo-web/releases/download/v2.0.0/NowDo-v2.0.0-macOS-arm64.zip)，不要把 GitHub 的“Source code”源码包当作应用。
+2. 解压，把“NowDo 计时点.app”放进 Applications，再打开。
+3. 先到 **设置 → 看一遍 22 秒使用演示**，用示例熟悉暂停、继续和复盘。
+
+当前包尚未经过 Apple Developer ID 签名和公证，macOS 可能拦截首次打开。确认来源可信后，可使用系统设置提供的打开选项，或自行从源码构建；不要关闭系统整体安全保护。[SHA256 校验文件](https://github.com/wangyiwen11/nowdo-web/releases/download/v2.0.0/SHA256SUMS.txt)与安装包一同发布。
+
 ## 从源码运行
 
-需要 Mac、Swift 开发工具与 macOS SDK。当前构建在 Apple Silicon 上验证；不会要求购买服务或填写 API Key。没有开发工具的普通用户，目前仍需要他人协助构建，不能把源码下载当作安装完成。
+自行构建需要 Mac、Swift 开发工具与 macOS SDK。当前构建在 Apple Silicon 上验证；不会要求购买服务或填写 API Key。使用上面的预览安装包不需要先安装开发工具；从源码构建则可按以下步骤操作。
 
 在原生版目录中运行；如果它位于仓库的 `macos/` 下，先进入该目录：
 
