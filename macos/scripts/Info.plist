@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleName</key><string>NowDo 计时点</string>
+<key>CFBundleDisplayName</key><string>NowDo 计时点</string>
+<key>CFBundleIdentifier</key><string>com.even.nowdo-dot</string>
+<key>CFBundleExecutable</key><string>NowDoDot</string>
+<key>CFBundleIconFile</key><string>AppIcon</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>CFBundleShortVersionString</key><string>2.0.0</string>
+<key>CFBundleVersion</key><string>200</string>
+<key>LSMinimumSystemVersion</key><string>14.0</string>
+<key>LSUIElement</key><true/>
+<key>NSHighResolutionCapable</key><true/>
+<key>NSCalendarsFullAccessUsageDescription</key><string>将你的苹果日历事项显示在计时点里，点击后记录实际用时。本工具只读取日程，不会创建、修改或删除日历事件。计时记录保存在这台 Mac。</string>
+<key>NSServices</key>
+<array>
+    <dict>
+        <key>NSMenuItem</key>
+        <dict><key>default</key><string>用 NowDo 开始计时</string></dict>
+        <key>NSMessage</key><string>startTiming</string>
+        <key>NSPortName</key><string>NowDo 计时点</string>
+        <key>NSSendTypes</key>
+        <array>
+            <string>com.apple.ical.ics</string>
+            <string>com.apple.ical.ics.event</string>
+            <string>com.apple.calendar.ics</string>
+            <string>public.calendar-event</string>
+        </array>
+        <key>NSSendFileTypes</key>
+        <array>
+            <string>com.apple.ical.ics</string>
+            <string>com.apple.ical.ics.event</string>
+        </array>
+        <key>NSRequiredContext</key><dict/>
+        <key>NSServiceDescription</key><string>从所选日历事件或 .ics 日历文件直接开始计时，实际用时保存在这台 Mac。</string>
+    </dict>
+</array>
+</dict></plist>

@@ -1,0 +1,72 @@
+name: NowDo Mac build and preview release
+
+on:
+  push:
+    branches: [main]
+    paths: ['macos/**', '.github/workflows/nowdo-macos.yml']
+  pull_request:
+    paths: ['macos/**', '.github/workflows/nowdo-macos.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nowdo-macos-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: macos-15
+    timeout-minutes: 15
+    outputs:
+      version: ${{ steps.package.outputs.version }}
+    defaults:
+      run:
+        working-directory: macos
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test timer, calendar input, and file promises
+        run: |
+          ./scripts/test-core.sh
+          ./scripts/test-import.sh
+          ./scripts/test-drop.sh
+      - name: Build and verify local signature
+        run: ./scripts/build-app.sh
+      - name: Package Apple Silicon preview
+        id: package
+        run: |
+          VERSION=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' scripts/Info.plist)
+          test "$(uname -m)" = arm64
+          mkdir -p release
+          ditto -c -k --sequesterRsrc --keepParent "dist/NowDo 计时点.app" "release/NowDo-v${VERSION}-macOS-arm64.zip"
+          (cd release && shasum -a 256 NowDo-*.zip > SHA256SUMS.txt)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nowdo-macos-preview
+          path: macos/release/*
+          retention-days: 14
+
+  release:
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: nowdo-macos-preview
+          path: release
+      - name: Publish versioned open-source preview
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "Version already published; do not replace its immutable source or assets."
+          else
+            gh release create "v${VERSION}" release/* --target "$GITHUB_SHA" --title "NowDo v${VERSION} · 免费开源预览版" --notes-file "macos/docs/RELEASE-v${VERSION}.md" --prerelease
+          fi
