@@ -66,7 +66,8 @@ jobs:
           VERSION: ${{ needs.build.outputs.version }}
         run: |
           if gh release view "v${VERSION}" >/dev/null 2>&1; then
-            echo "Version already published; do not replace its immutable source or assets."
+            gh release edit "v${VERSION}" --notes-file "macos/docs/RELEASE-v${VERSION}.md"
+            echo "Release description updated; existing tag and binary assets preserved."
           else
             gh release create "v${VERSION}" release/* --target "$GITHUB_SHA" --title "NowDo v${VERSION} · 免费开源预览版" --notes-file "macos/docs/RELEASE-v${VERSION}.md" --prerelease
           fi
